@@ -29,8 +29,8 @@ jobs:
       run: |
         cd backend
         docker build -t tienda-backend .
-        docker tag tienda-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
-        docker push ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
+        docker tag tienda-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}
+        docker push ${{ secrets.ECR_REPO_URL_BACKEND }}
 
     - name: Desplegar Backend via SSM
       env:
