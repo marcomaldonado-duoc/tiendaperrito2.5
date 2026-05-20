@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout código
+    - name: Checkout codigo
       uses: actions/checkout@v3
 
     - name: Configurar credenciales AWS
@@ -29,21 +29,18 @@ jobs:
       run: |
         cd backend
         docker build -t tienda-backend .
-        docker tag tienda-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}
-        docker push ${{ secrets.ECR_REPO_URL_BACKEND }}
+        docker tag tienda-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
+        docker push ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
 
-    - name: Desplegar Backend vía SSM
+    - name: Desplegar Backend via SSM
+      env:
+        REGION: ${{ secrets.AWS_REGION }}
+        ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        ECR_REPO: ${{ secrets.ECR_REPO_URL_BACKEND }}
+        INSTANCE_ID: ${{ secrets.EC2_BACKEND_INSTANCE_ID }}
       run: |
         aws ssm send-command \
-          --instance-ids ${{ secrets.EC2_BACKEND_INSTANCE_ID }} \
+          --instance-ids "$INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
-          --comment "Actualizar tienda-backend desde ECR" \
-          --parameters '{"commands":[
-            "set -e",
-            "aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}",
-            "docker pull ${{ secrets.ECR_REPO_URL_BACKEND }}:latest",
-            "docker stop tienda-backend || true",
-            "docker rm tienda-backend || true",
-            "docker run -d --name tienda-backend -p 3001:3001 ${{ secrets.ECR_REPO_URL_BACKEND }}:latest"
-          ]}' \
-          --output text
+          --parameters commands=["aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REGISTRY","docker pull $ECR_REPO:latest","docker stop tienda-backend || true","docker rm tienda-backend || true","docker run -d --name tienda-backend -p 3001:3001 -e DB_HOST=${{ secrets.DB_HOST }} $ECR_REPO:latest"] \
+          --region "$REGION"
