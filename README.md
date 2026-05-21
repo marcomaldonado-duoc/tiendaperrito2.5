@@ -47,6 +47,4 @@ Acceder en: http://localhost
 | EC2_BACKEND_INSTANCE_ID | ID instancia EC2 Backend |
 | EC2_FRONTEND_INSTANCE_ID | ID instancia EC2 Frontend |
 
-## Estructura del proyecto '@
-$content | Set-Content "README.md"
-
+## Estructura del proyecto 
